@@ -1,0 +1,15 @@
+{
+  "name": "ci-cd",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "run": "node index.js",
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "keywords": [],
+  "author": "Mohit Kumar",
+  "license": "ISC",
+  "type": "commonjs"
+}
