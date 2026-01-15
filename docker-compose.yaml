@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  app1:
+    image: docker-app
+    ports: ["3001:3000"]
+    environment:
+      - NODE_ENV=prod
+  app2:
+    image: docker-app
+    ports: ["3002:3000"]
+    environment:
+      - NODE_ENV=dev
