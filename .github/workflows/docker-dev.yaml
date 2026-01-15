@@ -1,34 +1,33 @@
-name: Docker Build & Deploy
+name: Docker Build & Deploy to Server
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
-  build-and-push:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        if: github.ref == 'refs/heads/main'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push Docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/docker-app:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/docker-app:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/docker-app:latest
+
+      - name: Deploy on WSL/Ubuntu Server
+        if: github.ref == 'refs/heads/main'
+        uses: appleboy/ssh-action@v1.0.3 # Updated version
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/docker-app:latest
+            docker stop app || true
+            docker rm app || true
+            docker run -d --name app \
+              -p 3000:3000 \
+              -v /path/to/your/code:/app \
+              ${{ secrets.DOCKERHUB_USERNAME }}/docker-app:latest
