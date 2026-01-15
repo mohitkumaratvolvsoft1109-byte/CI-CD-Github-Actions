@@ -32,9 +32,15 @@ jobs:
         run: |
           docker build -t docker-app:${{ github.sha }} .
 
-      - name: Test docker image
+      - name: Run unit tests
+        run: docker run --rm docker-app:${{ github.sha }} npm test
+
+      - name: Run E2E tests
         run: |
-          docker run --rm -p 3000:3000 docker-app:${{ github.sha }} npm run test:e2e || echo "E2E tests skipped"
+          docker run -d --name test-app -p 3000:3000 docker-app:${{ github.sha }} npm run dev
+          sleep 5  # Wait for server startup
+          docker run --rm --network container:test-app docker-app:${{ github.sha }} npm run test:e2e
+          docker stop test-app
 
   docker-push:
     needs: test-and-build
